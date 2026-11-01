@@ -1,0 +1,38 @@
+{
+  "format": "paper-trading-futures-live-backup",
+  "version": 1,
+  "updatedAt": "2026-08-01T15:09:35.225Z",
+  "sourceRevision": 0,
+  "storageVerified": true,
+  "reason": "active-ledger-clean-start",
+  "checksumAlgorithm": "FNV-1a-32 + SHA-256",
+  "checksum": "f85d79b7",
+  "sha256": "7db7298c337101c5f009fdc1576f62eeade834c5cdc3585785572ae02eeadc7a",
+  "data": {
+    "market": "KRW-BTC",
+    "symbol": "BTC",
+    "priceSource": "BINANCE_USDT_PERPETUAL",
+    "account": {
+      "initialUsdt": 200,
+      "usdtBalance": 200,
+      "updatedAt": "2026-08-01T15:09:35.225Z"
+    },
+    "position": null,
+    "positions": [],
+    "limitOrders": [],
+    "settledLimitOrderIds": [],
+    "exitOrders": [],
+    "completedOrderNotices": [],
+    "settledExitOrderIds": [],
+    "trades": [],
+    "positionBlocks": [],
+    "dailySummaries": [],
+    "positionJournalVersion": 3,
+    "intentionalClearAt": "2026-08-01T15:09:35.225Z",
+    "exchangeRate": 1500,
+    "exchangeRateUpdatedAt": "",
+    "displayCurrency": "USDT",
+    "leverage": 10,
+    "lastRealizedPnl": 0
+  }
+}

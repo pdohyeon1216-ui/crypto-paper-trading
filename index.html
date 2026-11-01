@@ -1,0 +1,573 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="Binance BTCUSDT, ETHUSDT, XRPUSDT, DOGEUSDT, SOLUSDT 무기한 선물 모의매매와 실시간 매매기록 백업 대시보드"
+    />
+    <title>BTC 선물 모의매매</title>
+    <link rel="stylesheet" href="./style.css?v=isolated-single-position-guide-20261027" />
+  </head>
+  <body class="futures-only">
+    <div class="app-shell">
+      <header class="app-header">
+        <div>
+          <p class="eyebrow" id="marketDataSourceLabel">BINANCE BTCUSDT PERPETUAL CHART</p>
+          <div class="mode-switcher" role="tablist" aria-label="시장 모드 선택">
+            <button id="spotModeBtn" class="active" type="button" role="tab" aria-selected="true" data-market-mode="spot">현물</button>
+            <button id="futuresModeBtn" type="button" role="tab" aria-selected="false" data-market-mode="futures">선물</button>
+          </div>
+          <div id="spotCoinSwitcher" class="coin-switcher" role="tablist" aria-label="코인 선택">
+            <button class="active" type="button" role="tab" aria-selected="true" data-market="KRW-BTC">비트코인</button>
+            <button type="button" role="tab" aria-selected="false" data-market="KRW-ETH">이더리움</button>
+            <button type="button" role="tab" aria-selected="false" data-market="KRW-XRP">리플</button>
+            <button type="button" role="tab" aria-selected="false" data-market="KRW-DOGE">도지코인</button>
+            <button type="button" role="tab" aria-selected="false" data-market="KRW-SOL">솔라나</button>
+          </div>
+          <h1 id="marketTitle">BTCUSDT 무기한 선물 모의매매 연습</h1>
+        </div>
+        <div class="header-actions">
+          <span id="connectionStatus" class="status-pill status-wait">연결 준비</span>
+          <button id="helpOpenBtn" class="ghost-button" type="button">이용 설명서</button>
+          <button id="settingsOpenBtn" class="ghost-button" type="button">설정</button>
+          <button id="resetOpenBtn" class="ghost-button danger-text" type="button">초기화</button>
+        </div>
+      </header>
+
+      <main>
+        <section class="dashboard-grid" aria-label="모의매매 현황">
+          <article class="metric-card">
+            <span id="priceLabel">현재 BTC 가격</span>
+            <strong id="statPrice">-</strong>
+            <small id="statChange">-</small>
+          </article>
+          <article class="metric-card">
+            <span id="totalAssetLabel">총 평가자산</span>
+            <strong id="statTotalAsset">-</strong>
+            <small id="totalAssetDetail">USDT 잔고 + 포지션 평가손익</small>
+          </article>
+          <article class="metric-card">
+            <span id="cashBalanceLabel">선물 USDT 잔고</span>
+            <strong id="statKrw">-</strong>
+            <small>매수 가능 금액</small>
+          </article>
+          <article class="metric-card allocation-card" aria-label="보유 코인 비율">
+            <div class="allocation-head">
+              <span id="allocationLabel">보유 코인 비율</span>
+              <strong id="holdingsAllocationSummary">보유 없음</strong>
+            </div>
+            <div id="holdingsAllocationBar" class="allocation-bar" aria-hidden="true">
+              <span class="allocation-empty">보유 코인 없음</span>
+            </div>
+            <div id="holdingsAllocationList" class="allocation-list">
+              <span class="allocation-muted">매수한 코인이 없습니다.</span>
+            </div>
+          </article>
+          <article class="metric-card">
+            <span id="unrealizedLabel">평가손익</span>
+            <strong id="statUnrealized">-</strong>
+            <small id="statUnrealizedRate">-</small>
+          </article>
+          <article class="metric-card">
+            <span id="realizedLabel">누적 실현손익</span>
+            <strong id="statRealized">-</strong>
+            <small id="statTradeCount">총 매매 0회</small>
+          </article>
+          <article class="metric-card">
+            <span id="winRateLabel">승률</span>
+            <strong id="statWinRate">-</strong>
+            <small id="statAvgRate">평균 수익률 -</small>
+          </article>
+          <article class="metric-card memo-card">
+            <label for="dashboardMemoTwo">메모 2</label>
+            <textarea id="dashboardMemoTwo" maxlength="240" placeholder="메모를 입력하세요"></textarea>
+          </article>
+        </section>
+
+        <section class="market-strip" aria-label="시장 요약">
+          <div>
+            <span>전일대비</span>
+            <strong id="tickerChangePrice">-</strong>
+          </div>
+          <div>
+            <span>변동률</span>
+            <strong id="tickerChangeRate">-</strong>
+          </div>
+          <div>
+            <span>고가</span>
+            <strong id="tickerHigh">-</strong>
+          </div>
+          <div>
+            <span>저가</span>
+            <strong id="tickerLow">-</strong>
+          </div>
+          <div>
+            <span>24H 거래대금</span>
+            <strong id="tickerAccTrade">-</strong>
+          </div>
+        </section>
+
+        <div class="workspace-grid">
+          <section id="chartPanel" class="chart-panel" aria-label="비트코인 캔들 차트">
+            <div class="panel-head">
+              <div>
+                <h2>캔들 차트</h2>
+                <p id="chartStatus">캔들 데이터를 기다리는 중</p>
+              </div>
+              <div class="timeframe-tabs" role="tablist" aria-label="차트 시간봉 선택">
+                <button class="timeframe-btn active" type="button" data-timeframe="1">1분</button>
+                <button class="timeframe-btn" type="button" data-timeframe="3">3분</button>
+                <button class="timeframe-btn" type="button" data-timeframe="5">5분</button>
+                <button class="timeframe-btn" type="button" data-timeframe="15">15분</button>
+                <button class="timeframe-btn" type="button" data-timeframe="60">1시간</button>
+                <button class="timeframe-btn" type="button" data-timeframe="240">4시간</button>
+              </div>
+            </div>
+
+            <div class="chart-tools">
+              <div class="ema-control" aria-label="이동평균선 표시 설정">
+                <label>
+                  <input type="checkbox" data-ema-key="ema20m" checked />
+                  <span class="ema-swatch" style="--ema-color: #FFD400"></span>
+                  <span>20분 EMA</span>
+                </label>
+                <label>
+                  <input type="checkbox" data-ema-key="ema50m" checked />
+                  <span class="ema-swatch" style="--ema-color: #FF9800"></span>
+                  <span>50분 EMA</span>
+                </label>
+                <label>
+                  <input type="checkbox" data-ema-key="ema90m" checked />
+                  <span class="ema-swatch" style="--ema-color: #9C27B0"></span>
+                  <span>1시간30분 EMA</span>
+                </label>
+                <label title="현재 분봉의 종가와 이전 9개 일봉 종가로 계산한 10일 단순이동평균">
+                  <input type="checkbox" data-ema-key="sma10d" />
+                  <span class="ema-swatch" style="--ema-color: #22C55E"></span>
+                  <span>10일선</span>
+                </label>
+                <label title="현재 분봉의 종가와 이전 29개 일봉 종가로 계산한 30일 단순이동평균">
+                  <input type="checkbox" data-ema-key="sma30d" />
+                  <span class="ema-swatch" style="--ema-color: #3B82F6"></span>
+                  <span>30일선</span>
+                </label>
+                <label title="현재 분봉의 종가와 이전 49개 일봉 종가로 계산한 50일 단순이동평균">
+                  <input type="checkbox" data-ema-key="sma50d" />
+                  <span class="ema-swatch" style="--ema-color: #00E5FF"></span>
+                  <span>50일선</span>
+                </label>
+                <label title="현재 분봉의 종가와 이전 99개 일봉 종가로 계산한 100일 단순이동평균">
+                  <input type="checkbox" data-ema-key="sma100d" />
+                  <span class="ema-swatch" style="--ema-color: #E879F9"></span>
+                  <span>100일선</span>
+                </label>
+                <label title="현재 분봉의 종가와 이전 199개 일봉 종가로 계산한 200일 단순이동평균">
+                  <input type="checkbox" data-ema-key="sma200d" />
+                  <span class="ema-swatch" style="--ema-color: #F43F5E"></span>
+                  <span>200일선</span>
+                </label>
+                <label>
+                  <input id="bollingerBandInput" type="checkbox" data-bollinger-key="bollinger20" />
+                  <span class="ema-swatch" style="--ema-color: #38bdf8"></span>
+                  <span>볼린저밴드</span>
+                </label>
+              </div>
+              <button id="trendModeBtn" class="tool-button" type="button">추세선 모드</button>
+              <button id="horizontalModeBtn" class="tool-button" type="button">수평선</button>
+              <button id="fibonacciModeBtn" class="tool-button" type="button">피보나치</button>
+              <button id="riskModeBtn" class="tool-button" type="button">손익비</button>
+              <button id="percentMeasureBtn" class="tool-button" type="button">등락률 측정</button>
+              <button id="chartOverlaysToggleBtn" class="tool-button chart-overlays-toggle" type="button" aria-pressed="true">내 표시 숨기기</button>
+              <button
+                id="rangeAssistantBtn"
+                class="tool-button range-assistant-button"
+                type="button"
+                aria-pressed="false"
+                title="5분봉·15분봉 최근 1,000개 캔들 기반 자동 지지·저항선"
+              >박스권 OFF</button>
+              <span id="rangeAssistantStatus" class="range-assistant-status" hidden>박스권 꺼짐</span>
+              <div class="risk-control" aria-label="손익비 설정">
+                <label>
+                  <span>익절</span>
+                  <input id="riskRewardInput" type="number" min="0.1" step="0.1" value="0.1" />
+                </label>
+                <span class="ratio-separator">:</span>
+                <label>
+                  <span>손절</span>
+                  <input id="riskRiskInput" type="number" min="0.1" step="0.1" value="0.1" />
+                </label>
+                <span id="riskRatioLabel" class="trend-hint">기본 RR 0.1:0.1</span>
+              </div>
+              <label class="color-control">
+                <span>색상</span>
+                <input id="trendColorInput" type="color" value="#38bdf8" />
+              </label>
+              <button id="deleteTrendBtn" class="tool-button" type="button" disabled>선택 삭제</button>
+              <button id="clearTrendBtn" class="tool-button danger-text" type="button">전체 삭제</button>
+              <span id="trendHint" class="trend-hint">추세선 모드 꺼짐</span>
+              <div class="zoom-control" aria-label="차트 보기 범위">
+                <button id="chartPanLeftBtn" class="tool-button" type="button" title="이전 캔들 구간 보기">← 이전</button>
+                <button id="chartPanUpBtn" class="tool-button chart-pan-vertical-btn" type="button" title="차트를 위로 이동" aria-label="차트를 위로 이동">↑ 위</button>
+                <button id="chartZoomInBtn" class="tool-button" type="button">확대</button>
+                <input id="chartVisibleRangeInput" type="range" min="60" max="600" step="20" value="60" aria-label="보이는 캔들 수" />
+                <button id="chartZoomOutBtn" class="tool-button" type="button">축소</button>
+                <button id="chartFitBtn" class="tool-button" type="button">전체</button>
+                <button id="chartPanDownBtn" class="tool-button chart-pan-vertical-btn" type="button" title="차트를 아래로 이동" aria-label="차트를 아래로 이동">아래 ↓</button>
+                <button id="chartPanRightBtn" class="tool-button" type="button" title="다음 캔들 구간 보기">다음 →</button>
+                <span id="chartRangeLabel" class="trend-hint">60개 표시</span>
+              </div>
+            </div>
+
+            <div id="chartPositionFilter" class="chart-position-filter" aria-label="차트 포지션 표시" hidden>
+              <span class="chart-position-filter-label">포지션 표시</span>
+              <div
+                id="chartPositionFilterButtons"
+                class="chart-position-filter-buttons"
+                role="group"
+                aria-label="차트에 표시할 포지션 선택"
+              ></div>
+              <span id="chartPositionFilterStatus" class="chart-position-filter-status"></span>
+            </div>
+
+            <div class="chart-meta" id="ohlcInfo">OHLC -</div>
+            <pre class="chart-debug-info" id="chartDebugInfo">chart debug: no data</pre>
+            <div class="chart-stage">
+              <canvas id="chartCanvas" aria-label="BTCUSDT 선물 캔들 차트"></canvas>
+              <div id="chartTooltip" class="chart-tooltip" hidden></div>
+              <div id="chartEmpty" class="chart-empty">차트 로딩 중</div>
+            </div>
+          </section>
+
+          <aside class="trade-panel" aria-label="모의매매 주문">
+            <div class="panel-head compact">
+              <div>
+                <h2>모의매매</h2>
+                <p>실제 주문 없이 잔고만 계산합니다.</p>
+              </div>
+            </div>
+
+            <div id="spotTradeControls">
+              <div class="trade-box buy-box">
+                <h3>매수</h3>
+                <label>
+                  <span>매수 금액 USDT</span>
+                  <input id="buyAmountInput" type="number" min="0" step="1000" placeholder="예: 1000000" />
+                </label>
+                <div class="quick-grid">
+                  <button type="button" data-buy-percent="1">1%</button>
+                  <button type="button" data-buy-percent="5">5%</button>
+                  <button type="button" data-buy-percent="10">10%</button>
+                  <button type="button" data-buy-percent="25">25%</button>
+                  <button type="button" data-buy-percent="50">50%</button>
+                  <button type="button" data-buy-percent="100">100%</button>
+                </div>
+                <label>
+                  <span>메모</span>
+                  <input id="buyMemoInput" type="text" maxlength="80" placeholder="예: 지지 반등 매수" />
+                </label>
+                <button id="buySubmitBtn" class="primary-button buy-button" type="button">매수</button>
+              </div>
+
+              <div class="trade-box sell-box">
+                <h3>매도</h3>
+                <label>
+                  <span id="sellAmountLabel">매도 수량 BTC</span>
+                  <input id="sellAmountInput" type="number" min="0" step="0.00000001" placeholder="예: 0.01" />
+                </label>
+                <div class="quick-grid">
+                  <button type="button" data-sell-percent="10">10%</button>
+                  <button type="button" data-sell-percent="25">25%</button>
+                  <button type="button" data-sell-percent="50">50%</button>
+                  <button type="button" data-sell-percent="70">70%</button>
+                  <button type="button" data-sell-percent="90">90%</button>
+                  <button type="button" data-sell-percent="100">100%</button>
+                </div>
+                <label>
+                  <span>메모</span>
+                  <input id="sellMemoInput" type="text" maxlength="80" placeholder="예: 익절 또는 손절" />
+                </label>
+                <button id="sellSubmitBtn" class="primary-button sell-button" type="button">매도</button>
+              </div>
+            </div>
+
+            <div id="futuresTradeControls" class="futures-trade-controls">
+              <div class="trade-box futures-box">
+                <div class="futures-box-head">
+                  <div>
+                    <h3>BTC 선물</h3>
+                    <p>Binance BTCUSDT 무기한 차트</p>
+                  </div>
+                  <div class="futures-mode-pills" aria-label="선물 거래 방식">
+                    <span class="margin-mode-pill">격리</span>
+                    <span id="futuresSelectedLeverage" class="leverage-pill">10x</span>
+                  </div>
+                </div>
+                <label>
+                  <span id="futuresMarginLabel">사용 증거금 (USDT)</span>
+                  <span class="amount-unit-input">
+                    <input id="futuresMarginInput" type="number" min="0.01" step="0.01" placeholder="예: 10" />
+                    <span class="amount-unit-suffix">USDT</span>
+                  </span>
+                </label>
+                <p id="futuresOrderConversionHint" class="futures-order-conversion-hint">입력한 증거금이 현재가와 레버리지에 맞는 BTC 수량으로 자동 계산됩니다.</p>
+                <div class="leverage-grid" role="group" aria-label="레버리지 선택">
+                  <button class="active" type="button" data-futures-leverage="10">10배</button>
+                  <button type="button" data-futures-leverage="15">15배</button>
+                  <button type="button" data-futures-leverage="20">20배</button>
+                  <button type="button" data-futures-leverage="30">30배</button>
+                  <button type="button" data-futures-leverage="50">50배</button>
+                </div>
+                <div class="futures-action-grid">
+                  <button id="futuresLongBtn" class="primary-button long-button" type="button">롱 진입</button>
+                  <button id="futuresShortBtn" class="primary-button short-button" type="button">숏 진입</button>
+                </div>
+                <div class="futures-limit-action-grid" aria-label="지정가 예약 주문">
+                  <button id="futuresLimitLongBtn" class="limit-order-button limit-long-button" type="button">예약 진입(롱)</button>
+                  <button id="futuresLimitShortBtn" class="limit-order-button limit-short-button" type="button">예약 진입(숏)</button>
+                </div>
+                <p id="futuresLimitOrderHint" class="futures-limit-order-hint">버튼을 누른 뒤 차트에서 지정가를 클릭하세요.</p>
+                <div id="futuresLimitOrdersList" class="futures-limit-orders-list"></div>
+                <p class="futures-note"><strong>격리 모드 · 종목당 포지션 1개</strong> — 같은 방향 추가 진입만 기존 포지션에 합산됩니다.</p>
+                <p class="futures-note">수수료율은 진입/종료 각 0.05%, 왕복 합계 0.1%로 고정됩니다.</p>
+              </div>
+
+              <div class="trade-box futures-position-box">
+                <h3>선물 포지션</h3>
+                <div id="futuresPositionDetails" class="futures-position-details">
+                  <p class="muted-line">보유 중인 포지션이 없습니다.</p>
+                </div>
+              </div>
+            </div>
+          </aside>
+        </div>
+
+        <section class="history-panel" aria-label="매매기록">
+          <div class="panel-head">
+            <div>
+              <h2>매매기록</h2>
+              <p id="historyStatus">저장된 거래 0건</p>
+            </div>
+            <div class="history-actions">
+              <button id="csvDownloadBtn" class="ghost-button" type="button">CSV 다운로드</button>
+              <button id="futuresFullBackupBtn" class="ghost-button" type="button">응급 백업 다운로드</button>
+              <button id="futuresRestoreBtn" class="ghost-button" type="button">백업 복원</button>
+              <input id="futuresRestoreFileInput" type="file" accept="application/json,.json" hidden />
+              <button id="clearTradesBtn" class="ghost-button danger-text" type="button">기록 삭제</button>
+            </div>
+          </div>
+          <div id="futuresLiveBackupBar" class="futures-live-backup-bar" data-state="disconnected">
+            <div>
+              <strong>단일 실시간 매매 백업</strong>
+              <span id="futuresLiveBackupStatus">브라우저 이중 저장 작동 중 · 독립 파일을 한 번 연결하면 매매마다 자동 갱신합니다.</span>
+            </div>
+            <button id="futuresLiveBackupBtn" class="ghost-button" type="button">백업 파일 연결</button>
+          </div>
+          <div id="futuresOpenPositionsBlock" class="futures-open-positions-block" hidden>
+            <div class="futures-open-positions-head">
+              <div>
+                <h3>현재 보유 포지션</h3>
+                <p data-open-position-summary>현재 보유 중인 선물 포지션이 없습니다.</p>
+              </div>
+            </div>
+            <div id="futuresOpenPositionsList" class="futures-open-positions-list"></div>
+          </div>
+          <div id="historyViewSwitcher" class="history-view-switcher" role="group" aria-label="매매기록 보기 방식">
+            <button id="historyPositionViewBtn" class="active" type="button" aria-pressed="true" aria-controls="tradeTableBody" data-history-view="position">포지션별</button>
+            <button id="historyDailyViewBtn" type="button" aria-pressed="false" aria-controls="tradeTableBody" data-history-view="daily">날짜별</button>
+            <button id="historyGraphViewBtn" type="button" aria-pressed="false" aria-controls="historyGraphPanel" data-history-view="graph">그래프</button>
+          </div>
+          <section id="historyGraphPanel" class="history-graph-panel" aria-label="완료 포지션별 시드 변동 그래프" hidden>
+            <div class="history-graph-toolbar">
+              <div>
+                <strong>그래프 가로 폭</strong>
+                <span>그래프 안에서 마우스 휠 ↑ 확대 · 휠 ↓ 축소</span>
+              </div>
+              <div class="history-graph-width-controls" role="group" aria-label="그래프 가로 폭 조절">
+                <button id="historyGraphWidthDecreaseBtn" type="button" aria-label="그래프 가로 폭 축소">− 축소</button>
+                <output id="historyGraphWidthLabel" aria-live="polite">100%</output>
+                <button id="historyGraphWidthIncreaseBtn" type="button" aria-label="그래프 가로 폭 확대">+ 확대</button>
+                <button id="historyGraphWidthResetBtn" type="button">화면 맞춤</button>
+              </div>
+            </div>
+            <div id="historyGraphSummary" class="history-graph-summary"></div>
+            <div class="history-graph-frame">
+              <div id="historyGraphYAxis" class="history-graph-y-axis" aria-hidden="true"></div>
+              <div id="historyGraphChart" class="history-graph-chart"></div>
+            </div>
+            <div id="historyGraphXAxisLabel" class="history-graph-x-axis-label" hidden>청산 시간 (KST)</div>
+            <p id="historyGraphNote" class="history-graph-note">
+              전량 청산이 끝난 포지션을 청산 시간 순서로 반영합니다. 진행 중 포지션의 미실현손익은 포함하지 않습니다.
+            </p>
+          </section>
+          <div id="historyTableWrap" class="table-wrap">
+            <table>
+              <thead id="historyTableHead">
+                <tr>
+                  <th id="historyTimeHeader">시간</th>
+                  <th id="historyCoinHeader">코인</th>
+                  <th id="historySideHeader">구분</th>
+                  <th id="historyPriceHeader">가격</th>
+                  <th id="historyAmountHeader">수량</th>
+                  <th id="historyValueHeader">거래금액</th>
+                  <th id="historyFeeHeader">수수료</th>
+                  <th id="historyPnlHeader">실현손익</th>
+                  <th id="historyRateHeader">수익률</th>
+                  <th id="historyAvgHeader">평균단가</th>
+                  <th id="historyHoldingRateHeader">보유 변동률</th>
+                  <th id="historyBalanceHeader">거래 후 잔고</th>
+                  <th id="historyMemoHeader">메모</th>
+                </tr>
+              </thead>
+              <tbody id="tradeTableBody">
+                <tr>
+                  <td colspan="13" class="empty-row">매매기록이 없습니다.</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <div id="helpModal" class="modal-backdrop" aria-hidden="true">
+      <section class="modal-card help-card" role="dialog" aria-modal="true" aria-labelledby="helpTitle">
+        <div class="modal-head">
+          <div>
+            <p class="help-kicker">FUTURES PAPER TRADING GUIDE</p>
+            <h2 id="helpTitle">이용 설명서</h2>
+          </div>
+          <button class="icon-button" id="helpCloseBtn" type="button" aria-label="이용 설명서 닫기">×</button>
+        </div>
+        <div class="help-content">
+          <section class="help-rule-banner" aria-label="핵심 거래 규칙">
+            <h3>핵심 거래 규칙</h3>
+            <div class="help-rule-grid">
+              <div><span>증거금 방식</span><strong>격리</strong></div>
+              <div><span>종목당 포지션</span><strong>최대 1개</strong></div>
+              <div><span>같은 방향 추가 진입</span><strong>기존 포지션에 합산</strong></div>
+              <div><span>반대 방향 진입</span><strong>기존 포지션 청산 전 차단</strong></div>
+            </div>
+            <p>기존 버전에서 이미 한 종목에 롱·숏이 함께 생성된 경우에는 임의 청산하지 않습니다. 한쪽을 전량 청산할 때까지 신규·추가 진입이 제한됩니다.</p>
+          </section>
+
+          <section class="help-section">
+            <h3>1. 포지션 진입</h3>
+            <ol>
+              <li>상단에서 거래할 종목을 선택합니다.</li>
+              <li>사용 증거금과 레버리지를 입력합니다.</li>
+              <li><strong>롱 진입</strong> 또는 <strong>숏 진입</strong>을 누르면 시장가로 진입합니다.</li>
+              <li>예약 진입은 방향 버튼을 누른 뒤 차트에서 지정가를 선택합니다.</li>
+            </ol>
+            <p>보유 포지션과 같은 방향은 추가 진입으로 합산되며 평균 진입가와 유효 레버리지가 다시 계산됩니다. 반대 방향 버튼과 예약 주문은 차단됩니다.</p>
+          </section>
+
+          <section class="help-section">
+            <h3>2. 격리 증거금과 손익</h3>
+            <ul>
+              <li>각 포지션의 사용 증거금과 청산가는 해당 포지션 기준으로 계산됩니다.</li>
+              <li>수수료는 진입 0.05%와 청산 0.05%, 왕복 합계 0.1%입니다.</li>
+              <li>평단선은 차트 전체 폭의 실선, 수수료 포함 손익분기점은 회색 점선으로 표시됩니다.</li>
+              <li>표시되는 청산가는 모의매매용 단순 계산값입니다.</li>
+            </ul>
+          </section>
+
+          <section class="help-section">
+            <h3>3. 청산과 예약 청산</h3>
+            <ul>
+              <li><strong>부분 청산</strong>은 입력한 USDT만큼 포지션을 줄입니다.</li>
+              <li><strong>전체 청산</strong>은 해당 포지션을 종료하고 완료 기록으로 이동합니다.</li>
+              <li>예약 청산은 금액을 입력하고 차트에서 청산 가격을 선택합니다.</li>
+              <li>반대 방향으로 전환하려면 기존 포지션을 먼저 전량 청산해야 합니다.</li>
+            </ul>
+          </section>
+
+          <section class="help-section">
+            <h3>4. 차트 사용</h3>
+            <ul>
+              <li>초록색 <strong>B</strong>는 롱 진입, 분홍색 <strong>S</strong>는 숏 진입입니다.</li>
+              <li>시간봉, 이동평균선, 볼린저밴드, 추세선, 수평선, 피보나치와 손익비 도구를 사용할 수 있습니다.</li>
+              <li><strong>내 표시 숨기기</strong>를 누르면 직접 만든 차트 표시와 진입 표식을 감출 수 있습니다.</li>
+            </ul>
+          </section>
+
+          <section class="help-section">
+            <h3>5. 저장과 복구</h3>
+            <ul>
+              <li>브라우저 저장소에 주 저장본과 교대 백업본이 자동 저장됩니다.</li>
+              <li><strong>백업 파일 연결</strong>로 독립 JSON 파일을 연결하면 매매 때마다 갱신됩니다.</li>
+              <li><strong>응급 백업 다운로드</strong>와 <strong>백업 복원</strong>으로 전체 기록을 이동할 수 있습니다.</li>
+            </ul>
+          </section>
+
+          <p class="help-warning">이 프로그램은 연습용 모의매매 도구이며 실제 거래소 주문을 전송하지 않습니다.</p>
+        </div>
+        <div class="modal-actions">
+          <button id="helpDoneBtn" class="primary-button" type="button">확인</button>
+        </div>
+      </section>
+    </div>
+
+    <div id="settingsModal" class="modal-backdrop" aria-hidden="true">
+      <section class="modal-card" role="dialog" aria-modal="true" aria-labelledby="settingsTitle">
+        <div class="modal-head">
+          <h2 id="settingsTitle">설정</h2>
+          <button class="icon-button" id="settingsCloseBtn" type="button" aria-label="설정 닫기">×</button>
+        </div>
+        <div class="settings-grid">
+          <label>
+            <span>초기 시드머니 (USDT)</span>
+            <input id="seedInput" type="number" min="0.01" step="0.01" value="200" />
+          </label>
+          <section class="settings-policy-card" aria-label="고정 거래 설정">
+            <strong>고정 거래 설정</strong>
+            <div><span>증거금 방식</span><b>격리</b></div>
+            <div><span>종목당 포지션</span><b>최대 1개</b></div>
+            <p>같은 방향 추가 진입은 합산되며, 반대 방향은 기존 포지션을 전량 청산하기 전까지 차단됩니다.</p>
+          </section>
+          <p class="settings-help">새 시드를 적용하면 USDT 잔고가 해당 금액으로 바뀌고 모든 포지션·예약 주문·매매기록이 초기화됩니다.</p>
+        </div>
+        <div class="modal-actions">
+          <button id="settingsSaveBtn" class="ghost-button" type="button">닫기</button>
+          <button id="applySeedBtn" class="primary-button danger-button" type="button">초기 시드 적용</button>
+        </div>
+      </section>
+    </div>
+
+    <div id="resetModal" class="modal-backdrop" aria-hidden="true">
+      <section class="modal-card" role="dialog" aria-modal="true" aria-labelledby="resetTitle">
+        <div class="modal-head">
+          <h2 id="resetTitle">초기화</h2>
+          <button class="icon-button" id="resetCloseBtn" type="button" aria-label="초기화 닫기">×</button>
+        </div>
+        <div class="reset-grid">
+          <button id="resetTradesOnlyBtn" type="button">매매기록만 삭제</button>
+          <button id="resetTrendlinesOnlyBtn" type="button">추세선만 삭제</button>
+          <button id="resetAllBtn" class="danger-fill" type="button">전체 초기화</button>
+        </div>
+      </section>
+    </div>
+
+    <div id="confirmModal" class="modal-backdrop" aria-hidden="true">
+      <section class="modal-card confirm-card" role="dialog" aria-modal="true" aria-labelledby="confirmTitle">
+        <div class="modal-head">
+          <h2 id="confirmTitle">확인</h2>
+          <button class="icon-button" id="confirmCloseBtn" type="button" aria-label="확인 닫기">×</button>
+        </div>
+        <p id="confirmMessage" class="confirm-message"></p>
+        <label id="confirmPhraseWrap" class="confirm-phrase" hidden>
+          <span id="confirmPhraseLabel">확인 문구</span>
+          <input id="confirmPhraseInput" type="text" autocomplete="off" />
+        </label>
+        <div class="modal-actions">
+          <button id="confirmCancelBtn" class="ghost-button" type="button">취소</button>
+          <button id="confirmOkBtn" class="primary-button danger-button" type="button">확인</button>
+        </div>
+      </section>
+    </div>
+
+    <div id="toast" class="toast" role="status" aria-live="polite"></div>
+    <script src="./app.js?v=isolated-single-position-guide-20261027" defer></script>
+  </body>
+</html>
